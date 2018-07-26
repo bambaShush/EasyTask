@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "57835684600",
+    "firebase_url": "https://easytask-211410.firebaseio.com",
+    "project_id": "easytask-211410",
+    "storage_bucket": "easytask-211410.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:57835684600:android:7797f7939a11c6da",
+        "android_client_info": {
+          "package_name": "com.example.dan_k.easytask"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "57835684600-v4e907q89a8mpbdgb2u470hetvschap0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.dan_k.easytask",
+            "certificate_hash": "e92554ea38c0812887b69439b8ad876864e51217"
+          }
+        },
+        {
+          "client_id": "57835684600-4999n0tbvojj81krajphu2ilp5cqd4bt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAawOsP52S1OYKrGdIQmGndKYE9g0vMJX4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "57835684600-4999n0tbvojj81krajphu2ilp5cqd4bt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
