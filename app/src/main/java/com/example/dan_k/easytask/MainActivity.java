@@ -1,5 +1,6 @@
 package com.example.dan_k.easytask;
 
+import android.content.Intent;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -19,7 +20,8 @@ public class MainActivity extends AppCompatActivity implements SignUpFragment.On
     @Override
     public void onStart() {
         super.onStart();
-        getSupportFragmentManager().beginTransaction().replace(R.id.showFrag,new SignUpFragment()).addToBackStack(null).commit();
+        //getSupportFragmentManager().beginTransaction().replace(R.id.showFrag,new SignUpFragment()).addToBackStack(null).commit();
+        startActivity(new Intent(this,AutoCompleteActivity.class));
     }
 
     @Override

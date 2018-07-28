@@ -99,7 +99,9 @@ public class SignUpFragment extends Fragment implements View.OnClickListener {
         super.onStart();
         // Check if user is signed in (non-null) and update UI accordingly.
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        //updateUI(currentUser);
+        if(currentUser!=null)
+            if (mListener != null)
+                mListener.onLogin();
     }
 
     // TODO: Rename method, update argument and hook method into UI event
