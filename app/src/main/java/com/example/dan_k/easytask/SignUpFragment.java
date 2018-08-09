@@ -1,16 +1,21 @@
 package com.example.dan_k.easytask;
 
 import android.app.Activity;
+import android.app.Dialog;
+import android.app.DialogFragment;
+import android.app.TimePickerDialog;
 import android.content.Context;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TimePicker;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -25,14 +30,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link OnLoginListener} interface
- * to handle interaction events.
- * Use the {@link SignUpFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+import java.util.Calendar;
+
 public class SignUpFragment extends Fragment implements View.OnClickListener {
     private static String TAG=SignUpFragment.class.getName();
     private final static String SERVERS_CLIENT_ID="57835684600-4999n0tbvojj81krajphu2ilp5cqd4bt.apps.googleusercontent.com";
@@ -47,18 +46,9 @@ public class SignUpFragment extends Fragment implements View.OnClickListener {
         // Required empty public constructor
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
+
     public interface OnLoginListener {
-        void onLogin();
+        void onLogin(FirebaseUser currentUser);
     }
 
     public static SignUpFragment newInstance() {
@@ -101,14 +91,7 @@ public class SignUpFragment extends Fragment implements View.OnClickListener {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if(currentUser!=null)
             if (mListener != null)
-                mListener.onLogin();
-    }
-
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed() {
-        if (mListener != null && mContext!=null) {
-            mListener.onLogin();
-        }
+                mListener.onLogin(currentUser);
     }
 
     @Override
@@ -136,7 +119,11 @@ public class SignUpFragment extends Fragment implements View.OnClickListener {
             signIn();
         }
         else if(v.getId()==R.id.logout){
+
             mAuth.signOut();
+
+            //after this, at the next time we try login to google account, the panel/intent will show up
+            mGoogleSignInClient.signOut();
         }
     }
 
@@ -208,3 +195,5 @@ public class SignUpFragment extends Fragment implements View.OnClickListener {
 
 
 }
+
+

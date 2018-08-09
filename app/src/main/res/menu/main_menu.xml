@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/action_add"
+        android:icon="@drawable/baseline_add_black_24"
+        android:title="add"
+        app:showAsAction="always"/>
+    <item
+    android:id="@+id/action_favorite"
+    android:icon="@drawable/baseline_add_location_black_24"
+    android:title="favorite"
+    app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/action_signIn"
+        android:icon="@drawable/baseline_note_add_black_24"
+        android:title="signIn"
+        app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/action_SaveTask"
+        android:icon="@drawable/baseline_check_black_36"
+        android:title="saveTask"
+        app:showAsAction="always"/>
+    <item
+        android:id="@+id/action_CancelTask"
+        android:icon="@drawable/baseline_cancel_presentation_black_36"
+        android:title="cancelTask"
+        app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/action_DeleteTask"
+        android:icon="@drawable/outline_delete_forever_black_36"
+        android:title="deleteTask"
+        app:showAsAction="always"/>
+
+
+</menu>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="removeValueBtnWidth">30dp</dimen>
+    <dimen name="removeValueBtnHeight">34dp</dimen>
+    <dimen name="chosenLocationTextWidth">230dp</dimen>
+    <dimen name="chosenTimeTextWidth">150dp</dimen>
+    <dimen name="chosenDateTextWidth">300dp</dimen>
+</resources>
