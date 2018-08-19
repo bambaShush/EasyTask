@@ -10,7 +10,7 @@
     tools:context=".MainActivity">
 
     <TextView
-        style="?android:attr/listSeparatorTextViewStyle"
+        style="?android:attr/textViewStyle"
         android:textDirection="ltr"
         android:layout_gravity="left"
         android:id="@+id/titleValue"
@@ -19,7 +19,9 @@
         android:layout_marginTop="10dp"
         android:paddingBottom="10dp"
         android:text="title Value"
-        android:textSize="20sp"
+        android:textColor="@color/common_google_signin_btn_text_dark_focused"
+        android:ellipsize="end"
+        android:textSize="18sp"
         />
 
     <TextView
@@ -31,7 +33,6 @@
         android:maxLines="1"
         android:ellipsize="end"
         android:text="description value"
-        android:textColor="@color/common_google_signin_btn_text_light"
         android:textSize="15sp" />
 
     <RelativeLayout
@@ -73,7 +74,7 @@
         android:id="@+id/locationImg"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/baseline_location_on_black_24"/>
+        android:src="@drawable/baseline_location_on_24"/>
     <TextView
         android:id="@+id/locationValue"
         android:layout_width="wrap_content"

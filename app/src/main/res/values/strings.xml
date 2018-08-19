@@ -5,7 +5,7 @@
     <string name="adding_task_title">Please fill all task details right now you nice guy :)</string>
     <string name="task_name">Task...</string>
     <string name="task_description">Description...</string>
-    <string name="some_check_box">yes or no</string>
+    <string name="completed_check_box">completed</string>
     <string name="set_date">Set date</string>
     <string name="set_time">Set time</string>
     <string name="set_location">Set location</string>

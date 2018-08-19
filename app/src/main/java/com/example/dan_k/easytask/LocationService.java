@@ -120,6 +120,10 @@ public class LocationService extends Service
                 .setContentTitle("textTitle")
                 .setContentText("textContent")
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+        //         if() depends on api
+        //         if(mBuilder.setChannelId())
+
+
 
 
         Log.e(TAG, "onCreate");

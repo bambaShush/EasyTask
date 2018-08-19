@@ -8,23 +8,33 @@ import java.util.HashMap;
 import java.util.Map;
 
 @IgnoreExtraProperties
-public class Task {
+public class Task{
+    private static final String TITLE_KEY="title";
+    private static final String DESCRIPTION_KEY="description";
+    private static final String TIMEINMILLIS_KEY="timeInMillis";
+    private static final String LOCATIONLAT_KEY="locationLat";
+    private static final String LOCATIONLNG_KEY="locationLng";
+    private static final String LOCATIONNAME_KEY="locationName";
+    private static final String NOTIFIED_KEY="notified";
+
 //    @Exclude
 //    public String id;
 
-    public String title;
-    public String description;
-    public long timeInMillis;
-    public double locationLat;
-    public double locationLng;
-    public String locationName;
-    public boolean notified;
+    private String title;
+    private String description;
+    private long timeInMillis;
+    private double locationLat;
+    private double locationLng;
+    private String locationName;
+    private boolean notified;
+    private boolean completed;
 
     public Task() {
         // Default constructor required for calls to DataSnapshot.getValue(Task.class)
     }
 
-    public Task(String title, String description,long timeInMillis, double locationLat,double locationLng,String locationName,boolean notified) {
+    public Task(String title, String description,long timeInMillis, double locationLat,double locationLng,String locationName
+            ,boolean notified,boolean completed) {
 
         this.title=title;
         this.description=description;
@@ -33,19 +43,59 @@ public class Task {
         this.locationLng=locationLng;
         this.locationName=locationName;
         this.notified=notified;
+        this.completed=completed;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public long getTimeInMillis() {
+        return timeInMillis;
+    }
+
+    public double getLocationLat() {
+        return locationLat;
+    }
+
+    public double getLocationLng() {
+        return locationLng;
+    }
+
+    public String getLocationName() {
+        return locationName;
+    }
+
+    public boolean isNotified() {
+        return notified;
+    }
+
+    public boolean isCompleted() {
+        return completed;
+    }
+
+    public static String getNotifiedKey() {
+        return NOTIFIED_KEY;
+    }
+
+    public void setNotified(boolean notified) {
+        this.notified = notified;
+    }
 
     @Exclude
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
-        result.put("title", title);
-        result.put("description", description);
-        result.put("timeInMillis", timeInMillis);
-        result.put("locationLat",locationLat);
-        result.put("locationLng",locationLng);
-        result.put("locationName",locationName);
-        result.put("notified",notified);
+        result.put(TITLE_KEY, title);
+        result.put(DESCRIPTION_KEY, description);
+        result.put(TIMEINMILLIS_KEY, timeInMillis);
+        result.put(LOCATIONLAT_KEY,locationLat);
+        result.put(LOCATIONLNG_KEY,locationLng);
+        result.put(LOCATIONNAME_KEY,locationName);
+        result.put(NOTIFIED_KEY,notified);
         return result;
     }
 

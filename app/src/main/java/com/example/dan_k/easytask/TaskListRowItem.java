@@ -10,29 +10,35 @@ public class TaskListRowItem {
     private String dueDate;
     private String location;
     private boolean notified;
+    private boolean completed;
 
-
-    public TaskListRowItem(String id, String title, String description, String dueDate, String location, boolean notified) {
+    public TaskListRowItem(String id, String title, String description, String dueDate, String location, boolean notified,boolean completed) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.dueDate = dueDate;
         this.location = location;
         this.notified = notified;
+        this.completed=completed;
     }
 
 
     public TaskListRowItem(String taskId,Task task){
         this.id = taskId;
-        this.title = task.title;
-        this.description = task.description;
+        this.title = task.getTitle();
+        this.description = task.getDescription();
 
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(task.timeInMillis);
-        SimpleDateFormat dateFormat=new SimpleDateFormat("EEEE, MMMM d, yyyy  HH:mm");
-        this.dueDate = dateFormat.format(calendar.getTime()).toString();
-        this.location = task.locationName;
-        this.notified = task.notified;
+        if(task.getTimeInMillis()!=MyService.NO_VALUE) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(task.getTimeInMillis());
+            SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, MMMM d, yyyy  HH:mm");
+            this.dueDate = dateFormat.format(calendar.getTime()).toString();
+        }
+        else
+            this.dueDate = MyService.NO_VALUE_STR;
+        this.location = task.getLocationName();
+        this.notified = task.isNotified();
+        this.completed=task.isCompleted();
     }
 
     public String getId() {
@@ -57,5 +63,9 @@ public class TaskListRowItem {
 
     public boolean isNotified() {
         return notified;
+    }
+
+    public boolean isCompleted() {
+        return completed;
     }
 }
