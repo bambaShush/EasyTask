@@ -71,6 +71,7 @@ public class CheckTasksService extends Service {
     private Notification mNotifyNoLocation;
     private static final int NoLocationNotfyId = 68;
     private static final int SummaryNotfyId = 168;
+    public static final int SERVICE_ID=169;
     private static final String GROUP_KEY_TASKS="MY_TASKS";
     private HandlerThread thread;
     private int mPassedMsLocationCheck =0;

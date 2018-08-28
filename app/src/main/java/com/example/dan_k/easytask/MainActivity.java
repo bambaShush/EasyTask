@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnL
         Context ctx = getApplicationContext();
         stopService(new Intent(ctx, CheckTasksService.class));
         Intent intent = new Intent(ctx, CheckTasksService.class);
-        PendingIntent pintent = PendingIntent.getService(ctx, 69, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pintent = PendingIntent.getService(ctx, CheckTasksService.SERVICE_ID, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         AlarmManager alarm = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
         alarm.setRepeating(AlarmManager.RTC_WAKEUP, Calendar.getInstance().getTimeInMillis(), 10*1000, pintent);
 
