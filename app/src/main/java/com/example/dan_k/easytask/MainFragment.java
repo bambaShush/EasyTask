@@ -104,35 +104,6 @@ public class MainFragment extends Fragment {
 
         mUsersTasksRef.addValueEventListener(mDataChangedListener);
 
-
-
-/*
-        rowsArrayList.add(new TaskListRowItem("1",
-                "long Title... need to do this and that",
-                "description, long description need this and that long long",
-                "23.2.18 22:45 something like that","0",false));
-
-        rowsArrayList.add(new TaskListRowItem("2",
-                "short Title",
-                "description, long description need this and that long long very very longi",
-                "23.2.18 22:45 something like that","0",false));
-
-        rowsArrayList.add(new TaskListRowItem("3",
-                "partial long Title... need to do",
-                "description, long description need this and that long longi",
-                "23.2.18 22:45 something like that","0",true));
-
-
-        rowsArrayList.add(new TaskListRowItem("4",
-                "short Title number 4",
-                "description, long description need this and that long long very very longi",
-                "23.2.18 22:45 something like that","0",false));
-
-        rowsArrayList.add(new TaskListRowItem("5",
-                "כותרת משימה כלשהי משימה 5",
-                "description, short description",
-                "23.2.18 22:45 something like that","0",true));
-     */
     }
 
     @Override
@@ -399,8 +370,6 @@ public class MainFragment extends Fragment {
 
             return convertView;
         }
-
-
 
     }
 }

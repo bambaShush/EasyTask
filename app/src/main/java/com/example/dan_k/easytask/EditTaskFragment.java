@@ -178,13 +178,6 @@ public class EditTaskFragment extends Fragment implements View.OnClickListener,
         return this.mFragmentView;
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed() {
-        if (mListener != null) {
-            mListener.onSuccessAddingTask();
-        }
-    }
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -369,7 +362,7 @@ public class EditTaskFragment extends Fragment implements View.OnClickListener,
 
     private AlertDialog askDelete()
     {
-        AlertDialog myQuittingDialogBox =new AlertDialog.Builder(getContext())
+        AlertDialog deletingDialogBox =new AlertDialog.Builder(getContext())
                 //set message, title, and icon
                 .setTitle("Delete")
                 .setMessage("Delete this task?")
@@ -384,8 +377,6 @@ public class EditTaskFragment extends Fragment implements View.OnClickListener,
 
                 })
 
-
-
                 .setNegativeButton("cancel", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
 
@@ -394,7 +385,7 @@ public class EditTaskFragment extends Fragment implements View.OnClickListener,
                     }
                 })
                 .create();
-        return myQuittingDialogBox;
+        return deletingDialogBox;
 
     }
 

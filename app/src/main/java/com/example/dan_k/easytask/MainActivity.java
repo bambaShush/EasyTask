@@ -45,20 +45,7 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnL
     @Override
     public void onStart() {
         super.onStart();
-
-//        if(!mBound) {
-//            Intent intent = new Intent(this, TasksService.class);
-//            bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-//        }
-//            if(!FusedLocationService.isRunning())
-//                startService(new Intent(this, FusedLocationService.class));
-
-
-
-            getSupportActionBar().setTitle("Easy Task");
-
-
-
+        getSupportActionBar().setTitle("Easy Task");
     }
 
     @Override

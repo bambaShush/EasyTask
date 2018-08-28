@@ -72,7 +72,6 @@ public class CheckTasksService extends Service {
     private static final int NoLocationNotfyId = 68;
     private static final int SummaryNotfyId = 168;
     private static final String GROUP_KEY_TASKS="MY_TASKS";
-    public static boolean fireNotif=false;
     private HandlerThread thread;
     private int mPassedMsLocationCheck =0;
     private int mPassedMs;
@@ -123,15 +122,13 @@ public class CheckTasksService extends Service {
     public void onCreate() {
         super.onCreate();
         try {
-
-
              thread = new HandlerThread("Thread name", android.os.Process.THREAD_PRIORITY_BACKGROUND);
             thread.start();
             Looper looper = thread.getLooper();
             myHandler = new OurHandler(looper);
 
             lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-            this.mNotifyNoLocation = createNotification("location provider disabled", "please enable it", false, "");
+            this.mNotifyNoLocation = createNotification("Easy Task: location provider disabled", "please enable it for location tasks", false, "");
             mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
             jobHandler = new OurHandler(looper);
             jobHandler.post(runnableCode);
@@ -410,33 +407,5 @@ public class CheckTasksService extends Service {
         return CheckTasksService.LOGOUT;
     }
 
-    public void appendLog(String text)
-    {
-        File logFile = new File("sdcard/log.file");
-        if (!logFile.exists())
-        {
-            try
-            {
-                logFile.createNewFile();
-            }
-            catch (IOException e)
-            {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
-        try
-        {
-            //BufferedWriter for performance, true to set append to file flag
-            BufferedWriter buf = new BufferedWriter(new FileWriter(logFile, true));
-            buf.append(text);
-            buf.newLine();
-            buf.close();
-        }
-        catch (IOException e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
+
 }
