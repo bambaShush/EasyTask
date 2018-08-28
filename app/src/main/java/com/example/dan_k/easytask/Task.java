@@ -16,6 +16,7 @@ public class Task{
     private static final String LOCATIONLNG_KEY="locationLng";
     private static final String LOCATIONNAME_KEY="locationName";
     private static final String NOTIFIED_KEY="notified";
+    private static final String COMPLETED_KEY="completed";
 
 //    @Exclude
 //    public String id;
@@ -81,6 +82,7 @@ public class Task{
     public static String getNotifiedKey() {
         return NOTIFIED_KEY;
     }
+    public static String getCompletedKey(){return COMPLETED_KEY;}
 
     public void setNotified(boolean notified) {
         this.notified = notified;
@@ -96,6 +98,7 @@ public class Task{
         result.put(LOCATIONLNG_KEY,locationLng);
         result.put(LOCATIONNAME_KEY,locationName);
         result.put(NOTIFIED_KEY,notified);
+        result.put(COMPLETED_KEY,completed);
         return result;
     }
 

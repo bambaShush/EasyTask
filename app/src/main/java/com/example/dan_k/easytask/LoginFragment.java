@@ -12,11 +12,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -35,6 +37,8 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
     private OnLoginListener mListener;
     private FirebaseAuth mAuth;
     private boolean isLogout=false;
+    private SignInButton mBtnSignIn;
+    private RelativeLayout mLoadingLayout;
     public LoginFragment() {
         // Required empty public constructor
     }
@@ -55,7 +59,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
         ((AppCompatActivity)getActivity()).getSupportActionBar().hide();
         Bundle args=getArguments();
         if(args!=null)
-            isLogout=args.getBoolean(MyService.getLogoutKey());
+            isLogout=args.getBoolean(CheckTasksService.getLogoutKey());
 
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getContext());
 
@@ -74,7 +78,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
 
             //after this, at the next time we try login to google account, the panel/intent will show up
             mGoogleSignInClient.signOut();
-            Intent serviceLogOut=new Intent(getContext(),MyService.class);
+            Intent serviceLogOut=new Intent(getContext(),CheckTasksService.class);
             serviceLogOut.putExtras(args);
             getActivity().startService(serviceLogOut);
         }
@@ -85,8 +89,10 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         this.mFragmentView=inflater.inflate(R.layout.fragment_sign_up, container, false);
-        this.mFragmentView.findViewById(R.id.sign_in_button).setOnClickListener(this);
-        this.mFragmentView.findViewById(R.id.logout).setOnClickListener(this);
+        mBtnSignIn=this.mFragmentView.findViewById(R.id.sign_in_button);
+        this.mBtnSignIn.setOnClickListener(this);
+        mLoadingLayout=this.mFragmentView.findViewById(R.id.loadingUser);
+        mLoadingLayout.setVisibility(View.GONE);
         return this.mFragmentView;
     }
 
@@ -124,18 +130,14 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
         if(v.getId()==R.id.sign_in_button){
             signIn();
         }
-        else if(v.getId()==R.id.logout){
-
-            mAuth.signOut();
-
-            //after this, at the next time we try login to google account, the panel/intent will show up
-            mGoogleSignInClient.signOut();
-        }
     }
 
     private void signIn() {
+        mLoadingLayout.setVisibility(View.VISIBLE);
+        mBtnSignIn.setVisibility(View.GONE);
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
         startActivityForResult(signInIntent, RC_SIGN_IN);
+
     }
 
 
@@ -145,6 +147,8 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
 
         // Result returned from launching the Intent from GoogleSignInClient.getSignInIntent(...);
         if (requestCode == RC_SIGN_IN) {
+            mBtnSignIn.setVisibility(View.VISIBLE);
+            mLoadingLayout.setVisibility(View.GONE);
             // The Task returned from this call is always completed, no need to attach
             // a listener.
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
@@ -155,7 +159,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
             } catch (ApiException e) {
                 // Google Sign In failed, update UI appropriately
                 Log.w(TAG, "Google sign in failed", e);
-                // ...
+
             }
 
 
@@ -163,8 +167,9 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
     }
 
     private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
+        mLoadingLayout.setVisibility(View.VISIBLE);
+        mBtnSignIn.setVisibility(View.GONE);
         Log.d(TAG, "firebaseAuthWithGoogle:" + acct.getId());
-
         AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
         mAuth.signInWithCredential(credential)
                 .addOnCompleteListener((Activity) getContext(), new OnCompleteListener<AuthResult>() {
@@ -175,31 +180,21 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
                             Log.d(TAG, "signInWithCredential:success");
                             FirebaseUser user = mAuth.getCurrentUser();
                             mListener.onLogin(user);
+
+
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "signInWithCredential:failure", task.getException());
                             //Snackbar.make(findViewById(R.id.main_layout), "Authentication Failed.", Snackbar.LENGTH_SHORT).show();
-                            //updateUI(null);
-                        }
 
-                        // ...
+                        }
+                        mBtnSignIn.setVisibility(View.VISIBLE);
+
                     }
                 });
     }
 
-    private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
-        try {
-            GoogleSignInAccount account = completedTask.getResult(ApiException.class);
-            Log.d(TAG, "Handling sign-in result");
-            // Signed in successfully, show authenticated UI.
-            //updateUI(account);
-        } catch (ApiException e) {
-            // The ApiException status code indicates the detailed failure reason.
-            // Please refer to the GoogleSignInStatusCodes class reference for more information.
-            Log.w(TAG, "signInResult:failed code=" + e.getStatusCode());
-            //updateUI(null);
-        }
-    }
+
 
 
 }

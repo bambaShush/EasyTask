@@ -1,11 +1,12 @@
 package com.example.dan_k.easytask;
 
 import android.Manifest;
-import android.content.ComponentName;
+import android.app.ActivityManager;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
@@ -14,36 +15,31 @@ import android.view.Menu;
 
 import com.google.firebase.auth.FirebaseUser;
 
+import java.util.Calendar;
+
 public class MainActivity extends AppCompatActivity implements LoginFragment.OnLoginListener,
         EditTaskFragment.OnSuccessAddingTaskListener,
         MainFragment.OnTaskClickedListener{
     private Fragment signInFragment;
     private FirebaseUser currentUser;
-    private TasksService mService;
-    private boolean mBound = false;
     private final static int RC=1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
                     RC);
         }
-        //When you enable disk persistence, your app writes the data locally to the device so your app can maintain state
-        // while offline, even if the user or operating system restarts the app.
 
 
-        //startActivity(new Intent(this,LocationActivity.class));
+
         getSupportFragmentManager().beginTransaction().replace(R.id.showFrag,new LoginFragment()).addToBackStack(null).commit();
 
 
 
-
-//        getSupportFragmentManager().beginTransaction().replace(R.id.showFrag,new MainFragment()).commit();
 
     }
     @Override
@@ -61,11 +57,7 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnL
 
             getSupportActionBar().setTitle("Easy Task");
 
-        String taskId= getIntent().getExtras()!=null? getIntent().getExtras().getString(MyService.TASK_ID_KEY):null;
-        if(taskId!=null && !taskId.equals(EditTaskFragment.EMPTY_STR)){
-            getIntent().getExtras().remove(MyService.TASK_ID_KEY);
-            GotoEditTaskFrag(taskId);
-        }
+
 
     }
 
@@ -81,11 +73,14 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnL
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
+        Context ctx = getApplicationContext();
+        stopService(new Intent(ctx, CheckTasksService.class));
+        Intent intent = new Intent(ctx, CheckTasksService.class);
+        PendingIntent pintent = PendingIntent.getService(ctx, 69, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        AlarmManager alarm = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        alarm.setRepeating(AlarmManager.RTC_WAKEUP, Calendar.getInstance().getTimeInMillis(), 10*1000, pintent);
 
-        if(mService!=null)
-            unbindService(mConnection);
-        mBound = false;
+        super.onDestroy();
     }
 
 
@@ -96,34 +91,28 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnL
         getMenuInflater().inflate(R.menu.main_menu, menu);
         return true;
     }
-//
-//
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        switch (item.getItemId()) {
-//            case R.id.action_add:
-//                getSupportFragmentManager().beginTransaction().replace(R.id.showFrag,new EditTaskFragment()).addToBackStack(null).commit();
-//                return true;
-//
-//            case R.id.action_favorite:
-//                // User chose the "Favorite" action, mark the current item
-//                // as a favorite...
-//                return true;
-//
-//            default:
-//                // If we got here, the user's action was not recognized.
-//                // Invoke the superclass to handle it.
-//                return super.onOptionsItemSelected(item);
-//
-//        }
-//    }
+
 
     @Override
     public void onLogin(FirebaseUser currentUser) {
         this.currentUser=currentUser;
         getSupportFragmentManager().popBackStack();
-        getSupportFragmentManager().beginTransaction().replace(R.id.showFrag,new MainFragment()).commit();
+        boolean showNotifiedOnly=false;
+        String taskId=null;
 
+        if(getIntent().getExtras()!=null){
+             showNotifiedOnly=getIntent().getExtras().getBoolean(CheckTasksService.NOTIFIED_ONLY_KEY,false);
+             taskId=getIntent().getExtras().getString(CheckTasksService.TASK_ID_KEY,null);
+        }
+
+        if(showNotifiedOnly)
+            getIntent().getExtras().remove(CheckTasksService.NOTIFIED_ONLY_KEY);
+        gotoMainFrag(showNotifiedOnly);
+
+        if (taskId != null) {
+                getIntent().getExtras().remove(CheckTasksService.TASK_ID_KEY);
+                gotoEditTaskFrag(taskId);
+        }
     }
 
     @Override
@@ -139,35 +128,38 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnL
             super.onBackPressed();
     }
 
-    /** Defines callbacks for service binding, passed to bindService() */
-    private ServiceConnection mConnection = new ServiceConnection() {
 
-        @Override
-        public void onServiceConnected(ComponentName className,
-                                       IBinder service) {
-            // We've bound to LocalService, cast the IBinder and get LocalService instance
-            TasksService.LocalBinder binder = (TasksService.LocalBinder) service;
-            mService = binder.getService();
-            mBound = true;
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) {
-            mBound = false;
-        }
-    };
 
     @Override
     public void onTaskClicked(String id) {
-        GotoEditTaskFrag(id);
+        gotoEditTaskFrag(id);
     }
 
-    public void GotoEditTaskFrag(String id){
+    private void gotoEditTaskFrag(String id){
         EditTaskFragment editTaskFragment=new EditTaskFragment();
         Bundle args=new Bundle();
-        args.putString(MyService.TASK_ID_KEY,id);
+        args.putString(CheckTasksService.TASK_ID_KEY,id);
         editTaskFragment.setArguments(args);
         getSupportFragmentManager().beginTransaction().replace(R.id.showFrag,editTaskFragment).addToBackStack(null).commit();
+
     }
+    private void gotoMainFrag(boolean showNotifiedOnly){
+        MainFragment mainFragment=new MainFragment();
+        Bundle args=new Bundle();
+        args.putBoolean(CheckTasksService.NOTIFIED_ONLY_KEY,showNotifiedOnly);
+        mainFragment.setArguments(args);
+        getSupportFragmentManager().beginTransaction().replace(R.id.showFrag,mainFragment).commit();
+    }
+
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
 

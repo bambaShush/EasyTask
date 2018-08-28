@@ -10,6 +10,9 @@ public class FirebaseUtils {
     public static FirebaseDatabase getDatabase() {
         if (mDatabase == null) {
             mDatabase = FirebaseDatabase.getInstance();
+
+            //When you enable disk persistence, your app writes the data locally to the device so your app can maintain state
+            // while offline, even if the user or operating system restarts the app.
             mDatabase.setPersistenceEnabled(true);
         }
         return mDatabase;

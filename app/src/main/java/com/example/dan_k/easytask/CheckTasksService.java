@@ -22,6 +22,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -45,24 +46,23 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class MyService extends Service {
-    private static String TAG = MyService.class.getName();
+public class CheckTasksService extends Service {
+    private static String TAG = CheckTasksService.class.getName();
     private Handler myHandler;
-    private boolean isRunning = false;
     private Map<String, Task> taskMap;
     private FirebaseDatabase mDatabaseInstance;
     private DatabaseReference mUsersTasksRef;
     private LocationManager lm;
     private FusedLocationProviderClient mFusedLocationClient;
-    private static final String STARTED = "started";
-    private static final String UPDATED = "updated";
     private static final String LOGOUT = "logout";
     public static final String TASK_ID_KEY="taskId";
+    public static final String NOTIFIED_ONLY_KEY="notifiedOnly";
     public static final int NO_VALUE=-1;
     public static final String NO_VALUE_STR="-1";
     private static final int DELAY_MILLIS=6000;
     private static final long METERS_FROM_DESTINATION=500;
-    private static final long MAX_PASSED_MS=300000;
+    private static final long MAX_PASSED_MS_LCCATION_CHECK =1000*60*5;
+    private static final long MAX_PASSED_MS =1000*60;
     public static String CHANNEL_ID = "Tasks channel";
     private boolean valueEventCancelled = false;
     private boolean justLoggedOut = false;
@@ -72,64 +72,76 @@ public class MyService extends Service {
     private static final int NoLocationNotfyId = 68;
     private static final int SummaryNotfyId = 168;
     private static final String GROUP_KEY_TASKS="MY_TASKS";
-    private int mPassedMs =0;
+    public static boolean fireNotif=false;
+    private HandlerThread thread;
+    private int mPassedMsLocationCheck =0;
+    private int mPassedMs;
     private static final Uri NOTIFY_SOUND = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-    public MyService() {
+    public CheckTasksService() {
     }
 
     private Handler jobHandler;
     private Runnable runnableCode = new Runnable() {
+
         @Override
         public void run() {
-            // Do something here on the main thread
+            try {
             if (!userIsLoggedIn) {
                 userIsLoggedIn = initiateDataBase();
-                if(userIsLoggedIn)
+                if (userIsLoggedIn) {
+                    getTasksData();
+                }
+            } else {
+                if (valueEventCancelled)
                     getTasksData();
             }
-            else{
-               if(valueEventCancelled)
-                   getTasksData();
-            }
             if (mNeedLocationChecks) {
-                if(mPassedMs ==0) {
+                if (mPassedMsLocationCheck == 0) {
                     if (lm != null && !lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                         fireNotification(NoLocationNotfyId, mNotifyNoLocation);
-                        mPassedMs +=DELAY_MILLIS;
+                        mPassedMsLocationCheck += DELAY_MILLIS;
                     }
-                }
-                else if(mPassedMs <MAX_PASSED_MS) {
-                    mPassedMs += DELAY_MILLIS;
-                }
-                else
-                    mPassedMs =0;
+                } else if (mPassedMsLocationCheck < MAX_PASSED_MS_LCCATION_CHECK) {
+                    mPassedMsLocationCheck += DELAY_MILLIS;
+                } else
+                    mPassedMsLocationCheck = 0;
             }
+//            if(mPassedMs<MAX_PASSED_MS)
+//                mPassedMs+=DELAY_MILLIS;
+//            else
+//                stopSelf();
             fireNotificationsIfNeeded();
             jobHandler.postDelayed(runnableCode, DELAY_MILLIS);
-
+            }
+            catch (Exception ex){
+                ex.printStackTrace();
+            }
         }
     };
 
     @Override
     public void onCreate() {
         super.onCreate();
-        HandlerThread thread = new HandlerThread("Thread name", android.os.Process.THREAD_PRIORITY_BACKGROUND);
-        thread.start();
-        Looper looper = thread.getLooper();
-        myHandler = new OurHandler(looper);
+        try {
 
 
-        lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        this.mNotifyNoLocation = createNotification("location provider disabled", "please enable it",false,"");
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        jobHandler = new OurHandler(looper);
-        jobHandler.post(runnableCode);
-        this.taskMap=new HashMap<>();
-        createNotificationChannel();
-//        fireNotification(1,createNotification("notif 1","some long context here fdfdsfjsdjfsdf",true,"0"));
-        fireNotification(2,createNotification("notif 2","hello my friends my name is dan",true,"0"));
-//        fireSummaryNotification("summary","some context",new ArrayList<String>());
+             thread = new HandlerThread("Thread name", android.os.Process.THREAD_PRIORITY_BACKGROUND);
+            thread.start();
+            Looper looper = thread.getLooper();
+            myHandler = new OurHandler(looper);
 
+            lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            this.mNotifyNoLocation = createNotification("location provider disabled", "please enable it", false, "");
+            mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+            jobHandler = new OurHandler(looper);
+            jobHandler.post(runnableCode);
+            this.taskMap = new HashMap<>();
+            createNotificationChannel();
+
+        }
+        catch (Exception ex){
+            Toast.makeText(getApplication(),ex.getMessage(),Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
@@ -139,20 +151,23 @@ public class MyService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
+        try {
         if(intent!=null) // May not have an Intent is the service was killed and restarted (See STICKY_SERVICE).
-            justLoggedOut=intent.getBooleanExtra(MyService.getLogoutKey(),false);
+            justLoggedOut=intent.getBooleanExtra(CheckTasksService.getLogoutKey(),false);
         if(justLoggedOut){
-                taskMap.clear();
+            taskMap.clear();
             NotificationManagerCompat managerCompat = NotificationManagerCompat.from(this);
             managerCompat.cancelAll();
-                mNeedLocationChecks=false;
-
+            mNeedLocationChecks=false;
         } else {
             initiateDataBase();
             getTasksData();
         }
-        return START_STICKY;
+        }
+        catch (Exception ex){
+
+        }
+        return START_NOT_STICKY;
     }
 
     public class OurHandler extends Handler {
@@ -173,9 +188,19 @@ public class MyService extends Service {
     }
 
 
+
+    @Override
+    public void onDestroy() {
+        thread.interrupt();
+        thread.quitSafely();
+        super.onDestroy();
+    }
+
     private void getTasksData() {
         if(mUsersTasksRef==null)
             return;
+        if(taskMap==null)
+            taskMap=new HashMap<>();
         mUsersTasksRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -211,7 +236,7 @@ public class MyService extends Service {
     private Notification createNotification(String contentTitle, String contentText,boolean isGroup,String taskId) {
         int requestID = (int) System.currentTimeMillis();
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.mipmap.easytask_ic_launcher)
+                .setSmallIcon(R.drawable.easy_task_notify)
                 .setContentTitle(contentTitle)
                 .setContentText(contentText)
                 .setAutoCancel(false);
@@ -220,13 +245,12 @@ public class MyService extends Service {
             builder.setSound(NOTIFY_SOUND);
 
             Intent notificationIntent = new Intent(getApplicationContext(), MainActivity.class);
+            notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                    | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             notificationIntent.putExtra(TASK_ID_KEY,taskId);
-            PendingIntent contentIntent = PendingIntent.getActivity(this, requestID,notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent contentIntent = PendingIntent.getActivity(this, requestID,notificationIntent, PendingIntent.FLAG_ONE_SHOT/*PendingIntent.FLAG_UPDATE_CURRENT*/);
             builder.setContentIntent(contentIntent);
         }
-
-
-
 
         return builder.build();
     }
@@ -238,7 +262,7 @@ public class MyService extends Service {
                             builder.setContentTitle(contentTitle)
                             //set content text to support devices running API level < 24
                             .setContentText(contentText)
-                            .setSmallIcon(R.mipmap.easytask_ic_launcher)
+                            .setSmallIcon(R.drawable.easy_task_notify)
                             //specify which group this notification belongs to
                             .setGroup(GROUP_KEY_TASKS)
                             .setAutoCancel(false)
@@ -251,12 +275,17 @@ public class MyService extends Service {
             }
             builder.setStyle(style);
             Intent notificationIntent = new Intent(getApplicationContext(), MainActivity.class);
+            notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                    | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            notificationIntent.putExtra(CheckTasksService.NOTIFIED_ONLY_KEY,true);
             PendingIntent contentIntent = PendingIntent.getActivity(this, requestID,notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             builder.setContentIntent(contentIntent);
             fireNotification(SummaryNotfyId,builder.build());
         }
 
     }
+
+
 
     private void fireNotification(int id, Notification notification) {
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
@@ -267,16 +296,15 @@ public class MyService extends Service {
     }
 
 
-
     private boolean initiateDataBase() {
         if(mUsersTasksRef!=null)
             return true;
         FirebaseUser user;
         if ((user = FirebaseAuth.getInstance().getCurrentUser()) == null)
             return false;
-        if ((mDatabaseInstance = FirebaseDatabase.getInstance()) == null)
+        if ((mDatabaseInstance = FirebaseUtils.getDatabase()) == null)
             return false;
-        mUsersTasksRef = mDatabaseInstance.getReference(String.format("/tasks/%s/", user.getUid()));
+        mUsersTasksRef = FirebaseUtils.getUserTasksRef(true);
         return true;
     }
 
@@ -289,14 +317,15 @@ public class MyService extends Service {
         int countCurrentNotifications=0;
         Calendar calendar=Calendar.getInstance();
         if (taskMap == null)
-            taskMap.clear();
+            taskMap=new HashMap<>();
         Iterator<Map.Entry<String, Task>> it = taskMap.entrySet().iterator();
         mNeedLocationChecks=false;
         while (it.hasNext()) {
             Map.Entry<String, Task> taskEntry = it.next();
             Task task = taskEntry.getValue();
             hasLocation=task.getLocationLat()!=NO_VALUE;
-            mNeedLocationChecks= mNeedLocationChecks? true: hasLocation && (!task.isNotified()||!task.isCompleted())  ;
+            if(!mNeedLocationChecks)
+                mNeedLocationChecks=  hasLocation && (!task.isNotified() && !task.isCompleted());
             hasTime=task.getTimeInMillis()!=NO_VALUE;
             if(task.isCompleted()){
                 continue;
@@ -377,14 +406,8 @@ public class MyService extends Service {
     }
 
 
-    public static String getStartedKey(){
-        return MyService.STARTED;
-    }
-    public static String getUpdatedKey(){
-        return MyService.UPDATED;
-    }
     public static String getLogoutKey(){
-        return MyService.LOGOUT;
+        return CheckTasksService.LOGOUT;
     }
 
     public void appendLog(String text)

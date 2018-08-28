@@ -28,14 +28,14 @@ public class TaskListRowItem {
         this.title = task.getTitle();
         this.description = task.getDescription();
 
-        if(task.getTimeInMillis()!=MyService.NO_VALUE) {
+        if(task.getTimeInMillis()!= CheckTasksService.NO_VALUE) {
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(task.getTimeInMillis());
             SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, MMMM d, yyyy  HH:mm");
             this.dueDate = dateFormat.format(calendar.getTime()).toString();
         }
         else
-            this.dueDate = MyService.NO_VALUE_STR;
+            this.dueDate = CheckTasksService.NO_VALUE_STR;
         this.location = task.getLocationName();
         this.notified = task.isNotified();
         this.completed=task.isCompleted();

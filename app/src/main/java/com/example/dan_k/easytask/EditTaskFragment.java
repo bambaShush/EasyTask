@@ -1,8 +1,9 @@
 package com.example.dan_k.easytask;
 
-import android.app.ActionBar;
+import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -17,9 +18,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
@@ -101,7 +100,7 @@ public class EditTaskFragment extends Fragment implements View.OnClickListener,
         mCalendar.set(Calendar.HOUR_OF_DAY,DEFUALT_HOUR);
         mCalendar.set(Calendar.MINUTE,DEFUALT_MINUTE);
         if(args!=null)
-            editTaskId=args.getString(MyService.TASK_ID_KEY);
+            editTaskId=args.getString(CheckTasksService.TASK_ID_KEY);
         mActionBar=((AppCompatActivity)getActivity()).getSupportActionBar();
         if(editTaskId!=null && !editTaskId.equals(EMPTY_STR)) {
             isEditMode = true;
@@ -132,6 +131,7 @@ public class EditTaskFragment extends Fragment implements View.OnClickListener,
         mEditTextDate.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
+                //disable choosing time when date is empty
                 if(!hasFocus) {
                     if(isEditTextEqualsStr(mEditTextDate,EMPTY_STR))
                         mEditTextTime.setEnabled(false);
@@ -204,9 +204,7 @@ public class EditTaskFragment extends Fragment implements View.OnClickListener,
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        menu.findItem(R.id.action_signIn).setVisible(false);
         menu.findItem(R.id.action_add).setVisible(false);
-        menu.findItem(R.id.action_favorite).setVisible(false);
         menu.findItem(R.id.action_logout).setVisible(false);
         menu.findItem(R.id.action_CancelTask).setVisible(true);
         menu.findItem(R.id.action_SaveTask).setVisible(true);
@@ -227,7 +225,8 @@ public class EditTaskFragment extends Fragment implements View.OnClickListener,
                 saveTask();
                 return true;
             case R.id.action_DeleteTask:
-                deleteTask();
+                AlertDialog diaBox = askDelete();
+                diaBox.show();
                 return true;
             default:
                 // If we got here, the user's action was not recognized.
@@ -261,8 +260,8 @@ public class EditTaskFragment extends Fragment implements View.OnClickListener,
         }
         else if(v.getId()==R.id.btnDeleteLocation){
             mEditTextLocation.setText(null);
-            mLatitude=MyService.NO_VALUE;
-            mLongitude=MyService.NO_VALUE;
+            mLatitude= CheckTasksService.NO_VALUE;
+            mLongitude= CheckTasksService.NO_VALUE;
         }
     }
 
@@ -277,10 +276,11 @@ public class EditTaskFragment extends Fragment implements View.OnClickListener,
                 @Override
                 public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
                     if(databaseError==null){
-                        getActivity().getSupportFragmentManager().popBackStack();
+
                     }
                 }
             });
+        getActivity().getSupportFragmentManager().popBackStack();
     }
     private void loadTask(){
         if(isEditMode) {
@@ -293,7 +293,7 @@ public class EditTaskFragment extends Fragment implements View.OnClickListener,
     private void saveTask(){
         if(!isEditTextEqualsStr(mEditTextTitle,EMPTY_STR) || !isEditTextEqualsStr(mEditTextDescription,EMPTY_STR)) {
             long timeInMillis;
-            timeInMillis = isEditTextEqualsStr(mEditTextDate,EMPTY_STR) ? MyService.NO_VALUE : mCalendar.getTimeInMillis();
+            timeInMillis = isEditTextEqualsStr(mEditTextDate,EMPTY_STR) ? CheckTasksService.NO_VALUE : mCalendar.getTimeInMillis();
             currentTask = new Task(
                     mEditTextTitle.getText().toString(),
                     mEditTextDescription.getText().toString(),
@@ -309,7 +309,7 @@ public class EditTaskFragment extends Fragment implements View.OnClickListener,
                     @Override
                     public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
                         if(databaseError==null){
-                            getActivity().getSupportFragmentManager().popBackStack();
+
                         }
                     }
                 });
@@ -317,7 +317,10 @@ public class EditTaskFragment extends Fragment implements View.OnClickListener,
             }else {
                 addTask();
             }
+            getActivity().getSupportFragmentManager().popBackStack();
         }
+        else
+            mEditTextTitle.requestFocus();
     }
 
     private void getTasksData() {
@@ -330,7 +333,7 @@ public class EditTaskFragment extends Fragment implements View.OnClickListener,
                         mEditTextTitle.setText(currentTask.getTitle());
                         mEditTextDescription.setText(currentTask.getDescription());
 
-                        if (currentTask.getTimeInMillis() == MyService.NO_VALUE) {
+                        if (currentTask.getTimeInMillis() == CheckTasksService.NO_VALUE) {
                             mEditTextDate.setText(EMPTY_STR);
                             mEditTextTime.setText(EMPTY_STR);
                         } else {
@@ -340,7 +343,7 @@ public class EditTaskFragment extends Fragment implements View.OnClickListener,
 
                         mLatitude = currentTask.getLocationLat();
                         mLongitude = currentTask.getLocationLng();
-                        mEditTextLocation.setText(mLatitude == MyService.NO_VALUE || mLongitude == MyService.NO_VALUE ? EMPTY_STR : currentTask.getLocationName());
+                        mEditTextLocation.setText(mLatitude == CheckTasksService.NO_VALUE || mLongitude == CheckTasksService.NO_VALUE ? EMPTY_STR : currentTask.getLocationName());
                         mChceckBoxCompleted.setChecked(currentTask.isCompleted());
                         isEditMode = true;
                     } else
@@ -362,6 +365,37 @@ public class EditTaskFragment extends Fragment implements View.OnClickListener,
         mEditTaskRef.removeValue();
         getActivity().getSupportFragmentManager().popBackStack();
         }
+    }
+
+    private AlertDialog askDelete()
+    {
+        AlertDialog myQuittingDialogBox =new AlertDialog.Builder(getContext())
+                //set message, title, and icon
+                .setTitle("Delete")
+                .setMessage("Delete this task?")
+                .setIcon(R.drawable.outline_delete_forever_24)
+
+                .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        deleteTask();
+                        dialog.dismiss();
+                    }
+
+                })
+
+
+
+                .setNegativeButton("cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        dialog.dismiss();
+
+                    }
+                })
+                .create();
+        return myQuittingDialogBox;
+
     }
 
 
@@ -414,7 +448,7 @@ public class EditTaskFragment extends Fragment implements View.OnClickListener,
     private void activatePlacePicker(){
         mProgressBarLocation.setVisibility(View.VISIBLE);
         PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
-        if(mLongitude!=MyService.NO_VALUE && mLatitude!=MyService.NO_VALUE)
+        if(mLongitude!= CheckTasksService.NO_VALUE && mLatitude!= CheckTasksService.NO_VALUE)
             builder.setLatLngBounds(new LatLngBounds
                     (new LatLng(mLatitude,mLongitude)
                             ,new LatLng(mLatitude,mLongitude)));

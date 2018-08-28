@@ -37,10 +37,16 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true" />
 
-    <Button
-        android:id="@+id/logout"
-        android:layout_below="@id/sign_in_button"
-        android:text="logout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+    <RelativeLayout
+        android:id="@+id/loadingUser"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center" >
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminate="true" />
+    </RelativeLayout>
+
 </RelativeLayout>

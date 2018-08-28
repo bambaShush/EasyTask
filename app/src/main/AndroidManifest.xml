@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.dan_k.easytask">
 
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -9,14 +10,25 @@
         android:allowBackup="true"
         android:icon="@mipmap/easytask_ic_launcher"
         android:label="@string/app_name"
-        android:persistent="true"
+        android:persistent="false"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <!--android:supportsRtl="false"-->
         <activity
             android:name=".MainActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:launchMode="singleTask"
+
+            >
+
+
+            <!--android:clearTaskOnLaunch="true"-->
+            <!-- android:taskAffinity="" -->
+            <!-- android:excludeFromRecents="true" -->
+
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -28,22 +40,13 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyAawOsP52S1OYKrGdIQmGndKYE9g0vMJX4" />
 
-        <activity android:name=".FireBaseActivity" />
-        <activity android:name=".LocationActivity" />
-
         <service
-            android:name=".LocationService"
-            android:enabled="true" />
-        <service
-            android:name=".FusedLocationService"
-            android:enabled="true"></service>
-        <service
-            android:name=".TasksService"
-            android:enabled="true" />
-        <service
-            android:name=".MyService"
+            android:name=".CheckTasksService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true"
+            />
+        <!--android:process=":ServiceProcess"-->
+
     </application>
 
 </manifest>

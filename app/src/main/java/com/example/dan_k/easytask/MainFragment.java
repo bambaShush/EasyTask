@@ -17,19 +17,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -38,16 +39,18 @@ public class MainFragment extends Fragment {
     private static String TAG=MainFragment.class.getName();
     protected View fragmentView;
     private ListView listView;
-    private Map<String,Task>taskMap;
+    private Map<String, Task> taskMap;
     CustomAdapter adapter;
     ArrayList<TaskListRowItem> rowsArrayList;
     private DatabaseReference mUsersTasksRef;
     private OnTaskClickedListener mListener;
     private ActionBar mActionBar;
     private RelativeLayout mLoadingPanel;
-    private TextView mAddFirstTask;
-    private boolean showLoadingPanel=true;
+    private TextView mTextAddFirstTask;
+    private boolean mShowLoadingPanel =true;
     private ValueEventListener mDataChangedListener;
+    private CheckBox mChkShowNotified;
+    private boolean mInitChkShowNotified=false;
     public MainFragment() {
         // Required empty public constructor
     }
@@ -58,6 +61,8 @@ public class MainFragment extends Fragment {
         return fragment;
     }
 
+
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,8 +70,11 @@ public class MainFragment extends Fragment {
         mActionBar.setTitle("Easy Task");
         mActionBar.show();
         setHasOptionsMenu(true);
+        Bundle args=getArguments();
+        if(args!=null)
+            mInitChkShowNotified=args.getBoolean(CheckTasksService.NOTIFIED_ONLY_KEY);
         mUsersTasksRef = FirebaseUtils.getUserTasksRef(true);
-
+        taskMap=new HashMap<>();
         rowsArrayList =new ArrayList<>();
 
 //        mUsersTasksRef.orderByChild("addedDate")
@@ -76,18 +84,15 @@ public class MainFragment extends Fragment {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // This method is called once with the initial value and again
                 // whenever data at this location is updated.
-                if(!rowsArrayList.isEmpty())
-                    rowsArrayList.clear();
                 if (dataSnapshot.getChildrenCount() > 0) {
-                    setRowsArrayList(dataSnapshot);
-                    mAddFirstTask.setVisibility(View.GONE);
+                    mTextAddFirstTask.setVisibility(View.GONE);
+                    updateAdapter(dataSnapshot);
                 }
                 else
-                    mAddFirstTask.setVisibility(View.VISIBLE);
-                adapter.notifyDataSetChanged();
+                    mTextAddFirstTask.setVisibility(View.VISIBLE);
                 mLoadingPanel.setVisibility(View.GONE);
-                showLoadingPanel=false;
-                getActivity().startService(new Intent(getContext(),MyService.class));
+                mShowLoadingPanel =false;
+                getActivity().startService(new Intent(getContext(),CheckTasksService.class));
             }
 
             @Override
@@ -145,16 +150,26 @@ public class MainFragment extends Fragment {
         });
         listView.setAdapter(adapter);
         mLoadingPanel =this.fragmentView.findViewById(R.id.loadingPanel);
-        if(!showLoadingPanel)
+        if(!mShowLoadingPanel)
             mLoadingPanel.setVisibility(View.GONE);
 
-        mAddFirstTask=this.fragmentView.findViewById(R.id.textAddFirstTask);
-        mAddFirstTask.setVisibility(View.GONE);
-        mAddFirstTask.setOnClickListener(new View.OnClickListener() {
+        mTextAddFirstTask =this.fragmentView.findViewById(R.id.textAddFirstTask);
+        mTextAddFirstTask.setVisibility(View.GONE);
+        mTextAddFirstTask.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 getActivity().getSupportFragmentManager().beginTransaction()
                         .replace(R.id.showFrag,new EditTaskFragment()).addToBackStack(null).commit();
+            }
+        });
+
+        mChkShowNotified=this.fragmentView.findViewById(R.id.chkShowNotifiedOnly);
+        mChkShowNotified.setChecked(mInitChkShowNotified);
+        mInitChkShowNotified=false;
+        mChkShowNotified.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                updateAdapter();
             }
         });
         return this.fragmentView;
@@ -164,9 +179,7 @@ public class MainFragment extends Fragment {
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        menu.findItem(R.id.action_signIn).setVisible(true);
         menu.findItem(R.id.action_add).setVisible(true);
-        menu.findItem(R.id.action_favorite).setVisible(true);
         menu.findItem(R.id.action_logout).setVisible(true);
         menu.findItem(R.id.action_CancelTask).setVisible(false);
         menu.findItem(R.id.action_SaveTask).setVisible(false);
@@ -183,7 +196,7 @@ public class MainFragment extends Fragment {
                 return true;
             case R.id.action_logout:
                 Bundle args=new Bundle();
-                args.putBoolean(MyService.getLogoutKey(),true);
+                args.putBoolean(CheckTasksService.getLogoutKey(),true);
                 LoginFragment fragment=new LoginFragment();
                 fragment.setArguments(args);
                 getActivity().getSupportFragmentManager().beginTransaction()
@@ -198,9 +211,32 @@ public class MainFragment extends Fragment {
     }
 
 
-    private void setRowsArrayList(DataSnapshot dataSnapshot) {
+    private void updateAdapter(DataSnapshot dataSnapshot) {
+        if(!rowsArrayList.isEmpty())
+            rowsArrayList.clear();
+        if(!taskMap.isEmpty())
+            taskMap.clear();
         for(DataSnapshot taskSnapShot:dataSnapshot.getChildren()) {
-            rowsArrayList.add(new TaskListRowItem(taskSnapShot.getKey(),taskSnapShot.getValue(Task.class)));
+            taskMap.put(taskSnapShot.getKey(),taskSnapShot.getValue(Task.class));
+            addRowsArrListItem(taskSnapShot.getValue(Task.class),taskSnapShot.getKey());
+        }
+        adapter.notifyDataSetChanged();
+    }
+
+    private void updateAdapter() {
+        if(!rowsArrayList.isEmpty())
+            rowsArrayList.clear();
+        Iterator<Map.Entry<String, Task>> it = taskMap.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, Task> taskEntry = it.next();
+            addRowsArrListItem(taskEntry.getValue(),taskEntry.getKey());
+        }
+        adapter.notifyDataSetChanged();
+    }
+
+    private void addRowsArrListItem(Task task,String taskId){
+        if(!mChkShowNotified.isChecked() || (task.isNotified() && !task.isCompleted())) {
+            rowsArrayList.add(new TaskListRowItem(taskId,task));
         }
     }
 
@@ -227,6 +263,7 @@ public class MainFragment extends Fragment {
     public void onDestroy() {
         if(mUsersTasksRef!=null && mDataChangedListener!=null)
             mUsersTasksRef.removeEventListener(mDataChangedListener);
+
         super.onDestroy();
     }
 
@@ -282,6 +319,7 @@ public class MainFragment extends Fragment {
             ImageView notifiedIcon;
             ImageView locationIcon;
             TextView location;
+            CheckBox completed;
 
         }
 
@@ -303,13 +341,15 @@ public class MainFragment extends Fragment {
                 holder.notifiedIcon =convertView.findViewById(R.id.notifiedImg);
                 holder.locationIcon=convertView.findViewById(R.id.locationImg);
                 holder.location=convertView.findViewById(R.id.locationValue);
+                holder.completed=convertView.findViewById(R.id.chkCompleted);
                 convertView.setTag(holder);
             } else {
                 holder = (ViewHolder) convertView.getTag();
             }
 
 
-            TaskListRowItem row_item = rowItems.get(position);
+
+            final TaskListRowItem row_item = rowItems.get(position);
                 holder.title.setText(row_item.getTitle());
             if(row_item.getDescription()!=null && !row_item.getDescription().equals(EditTaskFragment.EMPTY_STR)) {
                 holder.description.setText(row_item.getDescription());
@@ -317,7 +357,7 @@ public class MainFragment extends Fragment {
             }
             else
                 holder.description.setVisibility(View.GONE);
-            if(!row_item.getDueDate().equals(MyService.NO_VALUE_STR)) {
+            if(!row_item.getDueDate().equals(CheckTasksService.NO_VALUE_STR)) {
                 holder.dueDate.setText(row_item.getDueDate());
                 holder.dueDate.setVisibility(View.VISIBLE);
                 holder.dueDateText.setVisibility(View.VISIBLE);
@@ -346,6 +386,16 @@ public class MainFragment extends Fragment {
                 holder.title.setPaintFlags(holder.title.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
                 holder.description.setPaintFlags(holder.description.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
             }
+                holder.completed.setChecked(row_item.isCompleted());
+
+            holder.completed.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(mUsersTasksRef!=null){
+                        mUsersTasksRef.child(row_item.getId()).child(Task.getCompletedKey()).setValue(((CheckBox)v).isChecked());
+                    }
+                }
+            });
 
             return convertView;
         }

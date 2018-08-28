@@ -12,17 +12,6 @@
         android:icon="@drawable/baseline_add_black_24"
         android:title="add"
         app:showAsAction="always"/>
-    <item
-    android:id="@+id/action_favorite"
-    android:icon="@drawable/baseline_add_location_black_24"
-    android:title="favorite"
-    app:showAsAction="always"/>
-
-    <item
-        android:id="@+id/action_signIn"
-        android:icon="@drawable/baseline_note_add_black_24"
-        android:title="signIn"
-        app:showAsAction="always"/>
 
     <item
         android:id="@+id/action_SaveTask"
