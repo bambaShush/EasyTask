@@ -30,7 +30,7 @@ import com.google.firebase.auth.GoogleAuthProvider;
 
 public class LoginFragment extends Fragment implements View.OnClickListener {
     private static String TAG=LoginFragment.class.getName();
-    private final static String SERVERS_CLIENT_ID="57835684600-4999n0tbvojj81krajphu2ilp5cqd4bt.apps.googleusercontent.com";
+    private final static String SERVERS_CLIENT_ID="437279559400-erusbh15pfs4441cui3m42milpbro7sr.apps.googleusercontent.com";
     private final static int RC_SIGN_IN=1;
     private GoogleSignInClient mGoogleSignInClient;
     private View mFragmentView;
@@ -72,6 +72,8 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
 
         //Init Firebase Auth
         mAuth = FirebaseAuth.getInstance();
+
+
 
         if(isLogout){
             mAuth.signOut();
