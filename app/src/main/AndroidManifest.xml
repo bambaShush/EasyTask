@@ -38,7 +38,7 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyC0e2ka0eu5hWdqR1CG36D1RXhJF8f5Ccs" />
+            android:value="AIzaSyCjm-9UwX0HgRagTHJLLf60GZ1x9Gbor_g" />
 
         <service
             android:name=".CheckTasksService"

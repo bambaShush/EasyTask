@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "437279559400",
-    "firebase_url": "https://easytask2.firebaseio.com",
-    "project_id": "easytask2",
-    "storage_bucket": "easytask2.appspot.com"
+    "project_number": "633640068489",
+    "firebase_url": "https://easy-task-3.firebaseio.com",
+    "project_id": "easy-task-3",
+    "storage_bucket": "easy-task-3.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:437279559400:android:7797f7939a11c6da",
+        "mobilesdk_app_id": "1:633640068489:android:7797f7939a11c6da",
         "android_client_info": {
           "package_name": "com.example.dan_k.easytask"
         }
       },
       "oauth_client": [
         {
-          "client_id": "437279559400-ugrserpk2nh6aqlom22d21k1tbb53bio.apps.googleusercontent.com",
+          "client_id": "633640068489-k21rbr0ed1ai8eqn8ilmf0kv633cjsu6.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.example.dan_k.easytask",
@@ -23,13 +23,13 @@
           }
         },
         {
-          "client_id": "437279559400-erusbh15pfs4441cui3m42milpbro7sr.apps.googleusercontent.com",
+          "client_id": "633640068489-a0tla3tbfeublv64o2s9oji0ft2g9ted.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyC0e2ka0eu5hWdqR1CG36D1RXhJF8f5Ccs"
+          "current_key": "AIzaSyCjm-9UwX0HgRagTHJLLf60GZ1x9Gbor_g"
         }
       ],
       "services": {
@@ -40,7 +40,7 @@
           "status": 2,
           "other_platform_oauth_client": [
             {
-              "client_id": "437279559400-erusbh15pfs4441cui3m42milpbro7sr.apps.googleusercontent.com",
+              "client_id": "633640068489-a0tla3tbfeublv64o2s9oji0ft2g9ted.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
